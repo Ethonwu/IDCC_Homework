@@ -17,6 +17,7 @@ def display(request):
 	return HttpResponse(documents)
 	
 def status(request):
+        print "hello"
 	if request.method == 'GET':
 		id = request.GET['id']
 		#jbname = "job_"+str(request.user.id)+"_"+str(jobpk)
@@ -50,22 +51,20 @@ def execute(request):
 		jbname = "job_"+str(request.user.id)+"_"+str(jobpk)
 		cmd = "\
 			cd media/"+str(request.user.id)+"/"+str(jobpk)+";\
-			STREAMJAR=/opt/hadoop/share/hadoop/tools/lib/hadoop-streaming-2.6.0.jar;\
 			INPUT=input.txt;\
 			INPUT_DIR=/input;\
 			OUTPUT=output.txt;\
-			OUTPUT_DIR=/output;\
-			MAPPER=./mapper.py;\
-			REDUCER=./reducer.py;\
-			hdfs dfs -rm -r -f $INPUT_DIR;\
-			hdfs dfs -mkdir /input;\
-			hdfs dfs -put $INPUT $INPUT_DIR;\
-			hdfs dfs -rm -r -f $OUTPUT_DIR;\
-			hadoop jar $STREAMJAR\
-			-D mapreduce.job.name='"+jbname+"'\
-			-files $MAPPER,$REDUCER -mapper $MAPPER -reducer $REDUCER\
-			-input $INPUT_DIR -output $OUTPUT_DIR;\
-			hdfs dfs -cat $OUTPUT_DIR/part* > $OUTPUT;\
+			OUTPUT_DIR=/output/;\
+                        arg3=`cat input.txt|wc -l`;\
+			MinSUPP=`cat min_sup.txt`;\
+			k=`cat k.txt`;\
+                        arg5=`cat input.txt | wc -L`;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop dfs -rm -r -f $INPUT_DIR;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop dfs -mkdir /input;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop dfs -put $INPUT $INPUT_DIR;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop dfs -rm -r -f $OUTPUT_DIR;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop jar ~/BitMining_argvis5_for_webtest.jar $INPUT_DIR $OUTPUT_DIR $arg3 $MinSUPP $arg5;\
+			sh /home/hadoop/hadoop-1.2.1/bin/hadoop dfs -cat /output/8/part* > $OUTPUT;\
 		"
 		res = os.popen(cmd).read()
 		
@@ -131,12 +130,12 @@ def upload(request):
 				os.makedirs(path)
 			
 			file1 = f.cleaned_data['file1']
-			ff = open(path+"/mapper.py",'w')  
+			ff = open(path+"/min_sup.txt",'w')  
 			ff.write(file1)
 			ff.close()
 			
 			file1 = f.cleaned_data['file2']
-			ff = open(path+"/reducer.py",'w')  
+			ff = open(path+"/k.txt",'w')  
 			ff.write(file1)
 			ff.close()
 			
